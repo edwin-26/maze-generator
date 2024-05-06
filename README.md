@@ -1,4 +1,4 @@
-# Custom Maze Game - Project 3
+# Maze Game - Project 3
 
 ## Overview
 This project is a web-based maze game where users can generate a random maze, input their own maze configuration, or upload a maze file to play. The game is developed using HTML, CSS, and JavaScript for the frontend, and C++ with CGI for the backend maze generation.
