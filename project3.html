@@ -86,16 +86,17 @@
     </style>
 </head>
 
-<body onload="resetFields()">
+<body>
     <h2>CPS*3525 - Project 3</h2>
     <h3>Maze Game - Team 3</h3>
     <h4>Maze Generator</h4>
     <p>Please enter the size of the maze:</p>
-    <form action="../cgi-bin/maze_generator" method="POST" onsubmit="return checkSize()">
+    <form action="../cgi-bin/maze_generator" method="POST">
         <label for="size">Maze Size:</label>
         <input type="number" id="size" name="size" required>
         <input type="submit" value="Generate Maze">
     </form>
+
     <br>
     <textarea id="mazeInput" rows="10" cols="50"
         placeholder="Enter maze data... Format: s(y1,x1) e(y2,x2)\nMaze..."></textarea>
@@ -110,14 +111,6 @@
         let cursorPos = { x: 0, y: 0 };
         let finishPos = { x: 0, y: 0 };
 
-        function checkSize() { // Function to Prevent form submission
-            var size = document.getElementById('size').value;
-            if (parseInt(size) > 20) {
-                alert('Maze size must be 20 or less.');
-                return false;
-            }
-            return true; 
-        }
 
         function resetFields() {
             document.getElementById('mazeInput').value = '';

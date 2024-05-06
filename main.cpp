@@ -11,8 +11,6 @@
 using namespace std;
 using namespace cgicc;
 
-int getAndValidateSize(const Cgicc &cgi); 
-
 int main()
 {
     Cgicc cgi;
