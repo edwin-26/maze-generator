@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+
+<head>
+    <html lang="en">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link type="text/css" rel="stylesheet" id="dark-mode-custom-link">
+    <link type="text/css" rel="stylesheet" id="dark-mode-general-link">
+    <style lang="en" type="text/css" id="dark-mode-custom-style"></style>
+    <style lang="en" type="text/css" id="dark-mode-native-style"></style>
+    <style lang="en" type="text/css" id="dark-mode-native-sheet"></style>
+    <title>CPS*3525 - Project 3</title>
+    <title>Custom Maze Game</title>
+    <style>
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: #333;
+            padding: 40px;
+            border-radius: 25px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+
+        h1,
+        h2 {
+            color: #bda207;
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+
+        #maze {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .row {
+            display: flex;
+        }
+
+        .cell {
+            width: 20px;
+            height: 20px;
+            border: 1px solid #ccc;
+        }
+
+        .wall {
+            background-color: black;
+        }
+
+        .path {
+            background-color: white;
+        }
+
+        .cursor {
+            background-color: red;
+        }
+    </style>
+    <style type="text/css">
+        @font-face {
+            font-weight: 400;
+            font-style: normal;
+            font-family: circular;
+
+            src: url('chrome-extension://liecbddmkiiihnedobmlmillhodjkdmb/fonts/CircularXXWeb-Book.woff2') format('woff2');
+        }
+
+        @font-face {
+            font-weight: 700;
+            font-style: normal;
+            font-family: circular;
+
+            src: url('chrome-extension://liecbddmkiiihnedobmlmillhodjkdmb/fonts/CircularXXWeb-Bold.woff2') format('woff2');
+        }
+    </style>
+</head>
+
+<body onload="resetFields()">
+    <h2>CPS*3525 - Project 3</h2>
+    <h3>Maze Game - Team 3</h3>
+    <h4>Maze Generator</h4>
+    <p>Please enter the size of the maze:</p>
+    <form action="../cgi-bin/maze_generator" method="POST" onsubmit="return checkSize()">
+        <label for="size">Maze Size:</label>
+        <input type="number" id="size" name="size" required>
+        <input type="submit" value="Generate Maze">
+    </form>
+    <br>
+    <textarea id="mazeInput" rows="10" cols="50"
+        placeholder="Enter maze data... Format: s(y1,x1) e(y2,x2)\nMaze..."></textarea>
+    <br>
+    <h4>Or upload your own maze map to play!</h4>
+    <input type="file" id="fileInput">
+    <button onclick="loadMaze()">Load Maze</button>
+    <div id="maze"></div>
+
+    <script>
+        let mazeData = [];
+        let cursorPos = { x: 0, y: 0 };
+        let finishPos = { x: 0, y: 0 };
+
+        function checkSize() { // Function to Prevent form submission
+            var size = document.getElementById('size').value;
+            if (parseInt(size) > 20) {
+                alert('Maze size must be 20 or less.');
+                return false;
+            }
+            return true; 
+        }
+
+        function resetFields() {
+            document.getElementById('mazeInput').value = '';
+            document.getElementById('fileInput').value = '';
+        }
+
+        function parseMaze(input) {
+            input = input.replace(/\r\n/g, "\n"); 
+            const lines = input.split('\n');
+            const header = lines[0].trim();
+            const mazeBody = lines.slice(1);
+            const coords = header.match(/s\((\d+),(\d+)\)\s*e\((\d+),(\d+)\)/);
+            if (!coords || mazeBody.some(line => line.length > 20)) {
+                alert('Invalid maze configuration or size. Ensure the format is correct and the maze is up to 20x20.');
+                return false;
+            }
+            cursorPos = { x: parseInt(coords[2], 10) - 1, y: parseInt(coords[1], 10) - 1 };
+            finishPos = { x: parseInt(coords[4], 10) - 1, y: parseInt(coords[3], 10) - 1 };
+            return mazeBody.filter(line => line.trim().length); 
+        }
+
+        function loadMaze() {
+            const textInput = document.getElementById('mazeInput').value;
+            const fileInput = document.getElementById('fileInput').files[0];
+            if (fileInput) {
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    const fileContent = event.target.result;
+                    mazeData = parseMaze(fileContent);
+                    if (mazeData) renderMaze();
+                };
+                reader.readAsText(fileInput);
+            } else if (textInput) {
+                mazeData = parseMaze(textInput);
+                if (mazeData) renderMaze();
+            } else {
+                alert('Please provide maze data.');
+            }
+        }
+
+        function renderMaze() {
+            const mazeElement = document.getElementById('maze');
+            mazeElement.innerHTML = '';
+            mazeData.forEach((row, y) => {
+                const rowElement = document.createElement('div');
+                rowElement.className = 'row';
+                row.split('').forEach((cell, x) => {
+                    const cellElement = document.createElement('span');
+                    cellElement.className = `cell ${cell === 'B' ? 'wall' : 'path'}`;
+                    if (x === cursorPos.x && y === cursorPos.y) {
+                        cellElement.classList.add('cursor');
+                    }
+                    rowElement.appendChild(cellElement);
+                });
+                mazeElement.appendChild(rowElement);
+            });
+        }
+
+        document.addEventListener('keydown', (event) => {
+            if (!mazeData.length) return;
+            const moveMap = { 'ArrowUp': [0, -1], 'ArrowDown': [0, 1], 'ArrowLeft': [-1, 0], 'ArrowRight': [1, 0] };
+            const move = moveMap[event.key];
+            if (move) {
+                moveCursor(...move);
+            }
+        });
+
+        function moveCursor(dx, dy) {
+            const newX = cursorPos.x + dx;
+            const newY = cursorPos.y + dy;
+            if (newY >= 0 && newY < mazeData.length && newX >= 0 && newX < mazeData[newY].length && mazeData[newY][newX] === 'H') {
+                cursorPos.x = newX;
+                cursorPos.y = newY;
+                renderMaze();
+                checkFinishLine();
+            } else {
+                alert("Wall hit! Try again.");
+            }
+        }
+
+        function checkFinishLine() {
+            if (cursorPos.x === finishPos.x && cursorPos.y === finishPos.y) {
+                alert("Congratulations! You've reached the finish line.");
+            }
+        }
+    </script>
+</body>
+
+</html>
