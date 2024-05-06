@@ -42,3 +42,12 @@ This project is a web-based maze game where users can generate a random maze, in
 
 ## License
 This project is open-source and free to use. Feel free to contribute or modify the code as per your requirements.
+
+## Contributors
+
+This project was made possible through the collaborative efforts of the following team members:
+
+- **Ana Ramos**: Worked on the frontend development and designed the user interface.
+- **Kevin Zheng**: Implemented the backend logic and the maze generation algorithm.
+- **Edwin Ciriaco**: Assisted with debugging and backend logic.
+
